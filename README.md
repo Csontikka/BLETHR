@@ -8,7 +8,7 @@ Receiving and displaying data from an external thermometer operating in the [BTH
 Программа настройки **BLETHR**: [blethr.html](https://pvvx.github.io/blethr/blethr.html).
 
 #### Поддерживаемые модели для **BLETHR**:
-* LYWSD03MMC
+* LYWSD03MMC (все HW, кроме LYWSD03MMC B1.6 выпущенных с 03.2025)
 * [LKTMZL02(TS0201_TZ3210_ncw88jfq)](https://pvvx.github.io/LKTMZL02/)
 * [ZY-ZTH02Pro(TS0201_TZ3000_v1w2k9dd)](https://pvvx.github.io/ZY-ZTH02Pro)
 

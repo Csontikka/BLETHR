@@ -8,8 +8,8 @@ Receiving and displaying data from an external thermometer operating in the [BTH
 Программа настройки **BLETHR**: [blethr.html](https://pvvx.github.io/blethr/blethr.html).
 
 #### Поддерживаемые модели для **BLETHR**:
-* LYWSD03MMC
-* [LKTMZL02(TS0201_TZ3210_ncw88jfq)](https://pvvx.github.io/LKTMZL02/)
+* [LYWSD03MMC](https://pvvx.github.io/ATC_MiThermometer) (не рекомендуется с CR2032 - желательна замена батареи на минимум CR2050)
+* [LKTMZL02(TS0201_TZ3210_ncw88jfq)](https://pvvx.github.io/LKTMZL02)
 * [ZY-ZTH02Pro(TS0201_TZ3000_v1w2k9dd)](https://pvvx.github.io/ZY-ZTH02Pro)
 
 #### Поддерживаемые **термометры-датчики** - все передающие температуру и влажность в формате BTHome v2:

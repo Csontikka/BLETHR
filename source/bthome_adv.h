@@ -14,16 +14,16 @@
 #define BtHomeID_ver_encrypt	0x41
 
 // https://github.com/custom-components/ble_monitor/issues/548
-typedef enum {
+enum {
 	BtHomeID_PacketId = 0,			//0x00, uint8
 	BtHomeID_battery = 0x01,		//0x01, uint8, %
-	BtHomeID_temperature = 0x02,	//0x02, sint16, 0.01 °C
+	BtHomeID_temperature = 0x02,	//0x02, int16, 0.01 °C
 	BtHomeID_humidity = 0x03,		//0x03, uint16, 0.01 %
-	BtHomeID_pressure = 0x04,		//0x04, uint24, 0.01 hPa
+	BtHomeID_pressure24 = 0x04,		//0x04, uint24, 0.01 hPa / mbar ?
 	BtHomeID_illuminance = 0x05,	//0x05, uint24, 0.01 lux
 	BtHomeID_weight	= 0x06,			//0x06, uint16, 0.01 kg
 	BtHomeID_weight_lb = 0x07,      //0x07, uint16, 0.01 lb
-	BtHomeID_dewpoint = 0x08,		//0x08, sint16, 0.01 °C
+	BtHomeID_dewpoint = 0x08,		//0x08, int16, 0.01 °C
 	BtHomeID_count8 = 0x09,			//0x09,	uint8
 	BtHomeID_energy24 = 0x0a,		//0x0A, uint24, 0.001 kWh
 	BtHomeID_power24 = 0x0b,		//0x0B, uint24, 0.01 W
@@ -74,11 +74,11 @@ typedef enum {
 	BtHomeID_0x38 = 0x38,		//0x38, uint8
 	BtHomeID_0x39 = 0x39,		//0x39, uint8
 	BtHomeID_button = 0x3a,			//0x3a, uint8, =1 press, =2 double_press ... https://bthome.io/format/
-	BtHomeID_0x3b = 0x3b,		//0x3b, uint8
+	BtHomeID_0x3b = 0x3b,		    //0x3b, uint8
 	BtHomeID_dimmer = 0x3c,			//0x3c, uint16 ?, =1 rotate left 3 steps, ... https://bthome.io/format/
 	BtHomeID_count16 = 0x3d,		//0x3d, uint16
 	BtHomeID_count32 = 0x3e,		//0x3e, uint32
-	BtHomeID_rotation = 0x3f,		//0x3f, sint16, 0.1
+	BtHomeID_rotation = 0x3f,		//0x3f, int16, 0.1
 	BtHomeID_distance_mm  = 0x40,	//0x40, uint16, mm
 	BtHomeID_distance_m = 0x41,		//0x41, uint16, m, 0.1
 	BtHomeID_duration = 0x42,		//0x42, uint24, 0.01
@@ -95,11 +95,23 @@ typedef enum {
 	BtHomeID_energy32 = 0x4d,		//0x4d, uint32, 0.001 kWh
 	BtHomeID_volume32 = 0x4e,		//0x4e, uint32, 0.001 L
 	BtHomeID_water32 = 0x4f,		//0x4f, uint32, 0.001
-	BtHomeID_timestamp = 0x50,		//0x50, uint48
+	BtHomeID_timestamp = 0x50,		//0x50, uint32
 	BtHomeID_acceleration = 0x51,	//0x51, uint16, 0.001
 	BtHomeID_gyroscope = 0x52,		//0x52, uint16, 0.001
 	BtHomeID_text = 0x53,			//0x53, size uint8, uint8[]
-	BtHomeID_raw = 0x54				//0x54, size uint8, uint8[]
+	BtHomeID_raw = 0x54,			//0x54, size uint8, uint8[]
+	BtHomeID_volume_storage = 0x55, //0x55, uint32, 0.001 L
+	BtHomeID_conductivity = 0x56,	//0x56, uint16, µS/cm
+	BtHomeID_temperature8 = 0x57,   //0x57, int8, C
+	BtHomeID_temperature035 = 0x58, //0x57, int8, 0.35 C
+	BtHomeID_count_i8 = 0x59,		//0x59, int8
+	BtHomeID_count_i16 = 0x5A,		//0x5A, int16
+	BtHomeID_count_i32 = 0x5b,		//0x5b, int32
+	BtHomeID_power_i32 = 0x5c,		//0x5c, int32, 0.01 W
+	BtHomeID_current_i16 = 0x5d,	//0x5d, int16, 0.001 A
+	BtHomeID_direction = 0x5e,		//0x5e, uint16, 0.01 °
+	BtHomeID_precipitation =0x5f,	//0x5f, uint16, mm
+	BtHomeID_channel = 0x60			//0x60, int8,
 } BtHomeIDs_e;
 
 typedef struct __attribute__((packed)) _adv_bthome_t {

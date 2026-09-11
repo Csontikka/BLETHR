@@ -85,6 +85,9 @@ typedef struct {
 #if SCAN_DEBUG_ERR
 	u16 all_err;
 #endif
+#if SCAN_DEBUG_TIM
+	u16 rx_tim;		// ms from the start of the scan to the last reception, 0xffff = unknown
+#endif
 	u32 park_until;		// utc_time_sec at which a parked device searches again, 0 = not parked
 	u16 park_secs;		// current backoff in seconds, 0 = the device has not parked yet
 	scan_cfg_t cfg;

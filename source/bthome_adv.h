@@ -167,6 +167,10 @@ typedef struct __attribute__((packed)) _adv_buf_t {
 	u8	c_id;	// = BtHomeID_count16
 	u16	count;  // cnt err
 #endif
+#if	SCAN_DEBUG_TIM
+	u8	r_id;	// = BtHomeID_count16
+	u16	rx_tim; // ms, scan start to reception
+#endif
 
 } adv_buf_t;
 

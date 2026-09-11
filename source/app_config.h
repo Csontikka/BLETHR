@@ -6,9 +6,14 @@
 // Software Revision String ("V1.2+a"). Bump it on every release from here. It is kept
 // apart from SW_VERSION on purpose: SW_VERSION is also the stored configuration
 // version, and changing that risks erasing the user's settings, see app.c.
-#define FORK_REV 'a' // 'a'..'z'
+#define FORK_REV 'b' // 'a'..'z'
 
 #define SCAN_DEBUG_ERR		1
+// Temporary diagnostic: carry the time from the start of a scan to the reception in the
+// advertisement, in milliseconds. It answers whether a long search sweep really listens
+// for its whole length: hits spread across the whole sweep mean it does, hits clustered
+// at the very start mean the stack stops scanning on its own. Turn off for release.
+#define SCAN_DEBUG_TIM		1
 #define UART_PRINT_DEBUG_ENABLE 0
 
 #if UART_PRINT_DEBUG_ENABLE

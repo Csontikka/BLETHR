@@ -58,6 +58,11 @@ int scanning_event_callback(u32 h, u8 *p, int n) {
 						return 0;
 					blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 					scan.cur_rx_tik = tt; // timestamp приема нового сообщения
+#if SCAN_DEBUG_TIM
+					// how far into this scan the packet arrived, before start_tik is cleared below
+					scan.rx_tim = scan.start_tik ?
+						(u16)((tt - scan.start_tik) / CLOCK_16M_SYS_TIMER_CLK_1MS) : 0xffff;
+#endif
 					if(scan.stage) {
 						if(scan.stage == SCAN_STAGE_SYNC) {
 						//------- сканирование в режиме синхронизации

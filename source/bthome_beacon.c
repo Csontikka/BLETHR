@@ -39,6 +39,9 @@ RAM adv_buf_t adv_buf = {
 #if SCAN_DEBUG_ERR
 		, .c_id = BtHomeID_count16
 #endif
+#if SCAN_DEBUG_TIM
+		, .r_id = BtHomeID_count16
+#endif
 };
 
 
@@ -69,6 +72,9 @@ void bthome_data_beacon(void) {
 #if SCAN_DEBUG_ERR
 //	p->c_id = BtHomeID_count16;
 	p->count = scan.all_err;
+#endif
+#if SCAN_DEBUG_TIM
+	p->rx_tim = scan.rx_tim;
 #endif
 	p->size = sizeof(adv_buf_t) - sizeof(ad_flag_t) - 1;
 	bls_ll_setAdvData((u8 *)p, sizeof(adv_buf_t));

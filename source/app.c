@@ -214,7 +214,8 @@ _attribute_ram_code_ void main_loop(void) {
 			wrk.send_measure = 0;
 		}
 #endif
-		if (wrk.utc_time_sec - wrk.tim_measure >= measurement_step_time) {
+		if (!scan.start_tik // do not measure the battery while the radio is receiving
+		&& wrk.utc_time_sec - wrk.tim_measure >= measurement_step_time) {
 #if	(BATT_SERVICE_ENABLE)
 			wrk.send_measure = 1;
 #endif

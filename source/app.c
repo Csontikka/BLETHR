@@ -213,6 +213,10 @@ _attribute_ram_code_ void main_loop(void) {
 #if	(OTA_SERVICE_ENABLE)
 	if (!wrk.ota_is_working) {
 #endif
+		if (wrk.ble_connected && wrk.utc_time_sec - wrk.conn_sec >= CONN_MAX_SECS) {
+			bls_ll_terminateConnection(HCI_ERR_REMOTE_USER_TERM_CONN); // a client left it open
+			wrk.conn_sec = wrk.utc_time_sec; // do not ask again while the link tears down
+		}
 #if	(BATT_SERVICE_ENABLE)
 		if(wrk.send_measure) {
 			if (batteryValueInCCC && (blc_ll_getCurrentState() & BLS_LINK_STATE_CONN))

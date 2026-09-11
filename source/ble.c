@@ -42,6 +42,7 @@ void app_enter_ota_mode(void) {
 
 void ble_connect_callback(u8 e, u8 *p, int n) {
 	wrk.ble_connected = BIT(CONNECTED_FLG_ENABLE);
+	wrk.conn_sec = wrk.utc_time_sec;
 	blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 	wrk.scan_enable = 0;
 	scan.start_tik = 0; // разрешить sleep

@@ -25,6 +25,12 @@ typedef struct
 #define DEFAULT_CONN_PARAM CONN_INTERVAL_10MS, CONN_INTERVAL_30MS, 0, CONN_TIMEOUT_1S
 extern gap_periConnectParams_t my_periConnParameters;
 #define UPDATE_CONN_PARAM CONN_INTERVAL_20MS, CONN_INTERVAL_20MS, 49, CONN_TIMEOUT_4S
+
+// Longest a connection may last before the device ends it, in seconds. Scanning is off
+// for as long as a client is connected, so a client that connects and never disconnects
+// leaves the repeater relaying nothing, indefinitely and silently. The supervision
+// timeout above does not catch that: it only ends a link whose peer has gone away.
+#define CONN_MAX_SECS	300 // 5 minutes; OTA is exempt
 extern gap_periConnectParams_t my_updateConnParameters;
 
 typedef struct __attribute__((packed)) _ad_struct_head_t {

@@ -50,7 +50,7 @@ _attribute_ram_code_
 void send_task(void) {
 	if(ext_measure.update & FLG_UPDATE_TEMP) {
 		ext_measure.update &= ~FLG_UPDATE_TEMP;
-		if(measured_data.temp != ext_measure.temperature) {
+		if(measured_data.temp != ext_measure.temperature || wrk.lcd_redraw) {
 			measured_data.temp = ext_measure.temperature;
 			if (cfg.flg.temp_F_or_C) {
 				show_temp_symbol(TMP_SYM_F); // "°F"
@@ -65,7 +65,7 @@ void send_task(void) {
 		}
 		if(ext_measure.update & FLG_UPDATE_HUMI) {
 			ext_measure.update &= ~FLG_UPDATE_HUMI;
-			if(measured_data.humi != ext_measure.humidity) {
+			if(measured_data.humi != ext_measure.humidity || wrk.lcd_redraw) {
 				measured_data.humi = ext_measure.humidity;
 #if	(DEVICE_TYPE == DEVICE_CGG1) || (DEVICE_TYPE == DEVICE_CGDK2)
 				show_small_number_x10((ext_measure.humidity+5)/10, 1);
@@ -81,6 +81,7 @@ void send_task(void) {
 				bthome_data_beacon();
 			}
 		}
+		wrk.lcd_redraw = 0; // a fresh packet has been drawn, the error screen is gone
 	}
 	show_ble_symbol(wrk.ble_connected);
 	update_lcd();

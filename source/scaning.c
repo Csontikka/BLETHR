@@ -204,6 +204,7 @@ void scan_task(void) {
 					} else {
 						scan_init();
 #if (DEV_SERVICES & SERVICE_SCREEN)
+						wrk.lcd_redraw = 1;
 						SHOW_FLG_ERR();
 #endif
 					}
@@ -218,6 +219,7 @@ void scan_task(void) {
 			if(tt > scan.cfg.interval + 100*SCAN_INT_TIK) {
 				blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 #if (DEV_SERVICES & SERVICE_SCREEN)
+				wrk.lcd_redraw = 1;
 				SHOW_FLG_ERR();
 #endif
 				scan.err_count++;
@@ -237,6 +239,7 @@ void scan_task(void) {
 				if(tt > 125*CLOCK_16M_SYS_TIMER_CLK_1MS) {
 					blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 #if (DEV_SERVICES & SERVICE_SCREEN)
+					wrk.lcd_redraw = 1;
 					SHOW_FLG_ERR();
 #endif
 					scan.err_count++;
@@ -244,12 +247,15 @@ void scan_task(void) {
 					if(scan.err_count == 0xff) {
 						wrk.scan_enable = 0;
 #if (DEV_SERVICES & SERVICE_SCREEN)
+						wrk.lcd_redraw = 1;
 						show_scan_off();
 #endif
 					}
 #if (DEV_SERVICES & SERVICE_SCREEN)
-					else
+					else {
+						wrk.lcd_redraw = 1;
 						show_err_screen(scan.err_count);
+					}
 #endif
 #if SCAN_DEBUG
 					u_printf("st: %u, e:%u\n", tt >> 4, scan.err_count);

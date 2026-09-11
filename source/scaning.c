@@ -190,7 +190,7 @@ _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void scan_task(void) {
 	if(!wrk.ble_connected && !wrk.scan_enable && scan.park_until
-	&& wrk.utc_time_sec >= scan.park_until) {
+	&& wrk.mono_sec >= scan.park_until) {
 		//------- the backoff has run out, search for the source again
 		scan_init(); // clears park_until and returns to SCAN_STAGE_START
 		if(wrk.scan_enable)
@@ -274,7 +274,7 @@ void scan_task(void) {
 							if(scan.park_secs > SCAN_PARK_SECS_MAX)
 								scan.park_secs = SCAN_PARK_SECS_MAX;
 						}
-						scan.park_until = wrk.utc_time_sec + scan.park_secs;
+						scan.park_until = wrk.mono_sec + scan.park_secs;
 						wrk.scan_enable = 0;
 						// stop broadcasting the source fields: they are no longer current.
 						// this device keeps reporting its own state

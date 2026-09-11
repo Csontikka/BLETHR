@@ -53,6 +53,9 @@ typedef struct {
 	u32 utc_time_sec;	// clock in sec (= 0 1970-01-01 00:00:00)
 	u32 utc_time_sec_tick; //
 	u32 utc_time_tick_step; // adjust time clock (in 1/16 us for 1 sec)
+	u32 mono_sec;		// seconds since this boot. utc_time_sec above is the wall clock and a
+						// client can set it to anything, so anything measuring an elapsed
+						// interval has to use this instead
 #if (DEV_SERVICES & SERVICE_TIME_ADJUST)
 	u32 utc_set_time_sec;
 #endif

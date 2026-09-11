@@ -209,13 +209,14 @@ _attribute_ram_code_ void main_loop(void) {
 	while(clock_time() -  wrk.utc_time_sec_tick > wrk.utc_time_tick_step) {
 		wrk.utc_time_sec_tick += wrk.utc_time_tick_step;
 		wrk.utc_time_sec++; // + 1 sec
+		wrk.mono_sec++;
 	}
 #if	(OTA_SERVICE_ENABLE)
 	if (!wrk.ota_is_working) {
 #endif
-		if (wrk.ble_connected && wrk.utc_time_sec - wrk.conn_sec >= CONN_MAX_SECS) {
+		if (wrk.ble_connected && wrk.mono_sec - wrk.conn_sec >= CONN_MAX_SECS) {
 			bls_ll_terminateConnection(HCI_ERR_REMOTE_USER_TERM_CONN); // a client left it open
-			wrk.conn_sec = wrk.utc_time_sec; // do not ask again while the link tears down
+			wrk.conn_sec = wrk.mono_sec; // do not ask again while the link tears down
 		}
 #if	(BATT_SERVICE_ENABLE)
 		if(wrk.send_measure) {
@@ -225,11 +226,11 @@ _attribute_ram_code_ void main_loop(void) {
 		}
 #endif
 		if (!scan.start_tik // do not measure the battery while the radio is receiving
-		&& wrk.utc_time_sec - wrk.tim_measure >= measurement_step_time) {
+		&& wrk.mono_sec - wrk.tim_measure >= measurement_step_time) {
 #if	(BATT_SERVICE_ENABLE)
 			wrk.send_measure = 1;
 #endif
-			wrk.tim_measure = wrk.utc_time_sec;
+			wrk.tim_measure = wrk.mono_sec;
 #if (DEV_SERVICES & SERVICE_SCREEN)
 			show_battery_symbol(check_battery(END_VBAT_MV) <= 5);
 #endif

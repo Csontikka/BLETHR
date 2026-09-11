@@ -30,7 +30,6 @@ RAM adv_buf_t adv_buf = {
 		.info = BtHomeID_ver,
 		.p_id = BtHomeID_PacketId,
 		.b_id = BtHomeID_battery,
-		.b2_id = BtHomeID_battery,
 #if (DEV_SERVICES & SERVICE_THS)
 		.t_id = BtHomeID_temperature,
 		.h_id = BtHomeID_humidity,
@@ -55,8 +54,7 @@ void bthome_data_beacon(void) {
 //	p->p_id = BtHomeID_PacketId;
 	p->pid++;
 //	p->b_id = BtHomeID_battery;
-	p->battery_level = measured_data.battery_level; // this device
-	p->ext_battery_level = ext_measure.battery; // the source it relays
+	p->battery_level = ext_measure.battery; // the source it relays; our own cell is the voltage
 #if (DEV_SERVICES & SERVICE_THS)
 //	p->t_id = BtHomeID_temperature;
 	p->temperature = measured_data.temp; // x0.01 C
@@ -88,7 +86,6 @@ RAM adv_parked_t adv_parked = {
 		.UUID = ADV_BTHOME_UUID16,
 		.info = BtHomeID_ver,
 		.p_id = BtHomeID_PacketId,
-		.b_id = BtHomeID_battery,
 		.v_id = BtHomeID_voltage
 #if SCAN_DEBUG_ERR
 		, .c_id = BtHomeID_count16
@@ -103,7 +100,6 @@ __attribute__((optimize("-Os")))
 void bthome_parked_beacon(void) {
 	adv_parked_t * p = &adv_parked;
 	p->pid++;
-	p->battery_level = measured_data.battery_level;
 #if USE_AVERAGE_BATTERY
 	p->battery_mv = measured_data.average_battery_mv; // mV
 #else

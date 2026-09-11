@@ -152,9 +152,7 @@ typedef struct __attribute__((packed)) _adv_buf_t {
 	u8	p_id;	// = BtHomeID_PacketId
 	u8	pid;	// PacketId (measurement count)
 	u8	b_id;	// = BtHomeID_battery
-	u8	battery_level; // 0..100 %, this device
-	u8	b2_id;	// = BtHomeID_battery, a second one
-	u8	ext_battery_level; // 0..100 %, the source this device relays
+	u8	battery_level; // 0..100 %, the source this device relays
 #if (DEV_SERVICES & SERVICE_THS)
 	u8	t_id;	// = BtHomeID_temperature
 	s16	temperature; // x 0.01 degree
@@ -179,6 +177,9 @@ extern adv_buf_t adv_buf;
 // What a parked device advertises: its own state only. The source fields are left out,
 // so a consumer sees the relayed temperature go away while the device itself keeps
 // reporting, which separates "the source is not being heard" from "this unit is dying".
+// The battery percentage is deliberately absent: it describes the source, and there is
+// nothing current to say about it. This device's own cell is the voltage, which carries
+// the same key here as in the full advertisement.
 typedef struct __attribute__((packed)) _adv_parked_t {
 	ad_flag_t	flag;
 	u8	size;
@@ -187,8 +188,6 @@ typedef struct __attribute__((packed)) _adv_parked_t {
 	u8	info;	// = 0x40 BtHomeID_Info
 	u8	p_id;	// = BtHomeID_PacketId
 	u8	pid;
-	u8	b_id;	// = BtHomeID_battery
-	u8	battery_level; // 0..100 %, this device
 	u8	v_id;	// = BtHomeID_voltage
 	u16	battery_mv; // mV
 #if	SCAN_DEBUG_ERR

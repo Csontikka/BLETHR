@@ -233,6 +233,8 @@ _attribute_ram_code_ void main_loop(void) {
 #if (DEV_SERVICES & SERVICE_SCREEN)
 			show_battery_symbol(check_battery(END_VBAT_MV) <= 5);
 #endif
+			if (!wrk.scan_enable && scan.park_until)
+				bthome_parked_beacon(); // parked: keep our own reading current
 		}
 		scan_task();
 		if (scan.start_tik) // 	if (blts.scan_en & 1) // (scan.start_tik)

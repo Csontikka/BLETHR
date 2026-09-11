@@ -30,6 +30,7 @@ RAM adv_buf_t adv_buf = {
 		.info = BtHomeID_ver,
 		.p_id = BtHomeID_PacketId,
 		.b_id = BtHomeID_battery,
+		.b2_id = BtHomeID_battery,
 #if (DEV_SERVICES & SERVICE_THS)
 		.t_id = BtHomeID_temperature,
 		.h_id = BtHomeID_humidity,
@@ -51,7 +52,8 @@ void bthome_data_beacon(void) {
 //	p->p_id = BtHomeID_PacketId;
 	p->pid++;
 //	p->b_id = BtHomeID_battery;
-	p->battery_level = ext_measure.battery; // measured_data.battery_level;
+	p->battery_level = measured_data.battery_level; // this device
+	p->ext_battery_level = ext_measure.battery; // the source it relays
 #if (DEV_SERVICES & SERVICE_THS)
 //	p->t_id = BtHomeID_temperature;
 	p->temperature = measured_data.temp; // x0.01 C
@@ -70,4 +72,40 @@ void bthome_data_beacon(void) {
 #endif
 	p->size = sizeof(adv_buf_t) - sizeof(ad_flag_t) - 1;
 	bls_ll_setAdvData((u8 *)p, sizeof(adv_buf_t));
+}
+
+RAM adv_parked_t adv_parked = {
+		.flag.size = 2,
+		.flag.type = GAP_ADTYPE_FLAGS,
+		.flag.flg = 0x06,
+		.type = GAP_ADTYPE_SERVICE_DATA_UUID_16BIT,
+		.UUID = ADV_BTHOME_UUID16,
+		.info = BtHomeID_ver,
+		.p_id = BtHomeID_PacketId,
+		.b_id = BtHomeID_battery,
+		.v_id = BtHomeID_voltage
+#if SCAN_DEBUG_ERR
+		, .c_id = BtHomeID_count16
+#endif
+};
+
+// Advertise this device without the source fields, for as long as the source is not
+// being heard. Call it again whenever the battery has been remeasured, so a parked
+// device keeps reporting its own state instead of freezing at the moment it parked.
+_attribute_ram_code_
+__attribute__((optimize("-Os")))
+void bthome_parked_beacon(void) {
+	adv_parked_t * p = &adv_parked;
+	p->pid++;
+	p->battery_level = measured_data.battery_level;
+#if USE_AVERAGE_BATTERY
+	p->battery_mv = measured_data.average_battery_mv; // mV
+#else
+	p->battery_mv = measured_data.battery_mv; // mV
+#endif
+#if SCAN_DEBUG_ERR
+	p->count = scan.all_err;
+#endif
+	p->size = sizeof(adv_parked_t) - sizeof(ad_flag_t) - 1;
+	bls_ll_setAdvData((u8 *)p, sizeof(adv_parked_t));
 }

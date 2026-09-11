@@ -107,6 +107,9 @@ extern int soft_i2c_send_byte(u8 addr, u8 b);
 #else
 	measured_data.battery_level = get_battery_level(measured_data.battery_mv);
 #endif
+#if (BATT_SERVICE_ENABLE)
+	battery_level = measured_data.battery_level; // the value behind GATT 0x2A19
+#endif
 	return measured_data.battery_level;
 }
 

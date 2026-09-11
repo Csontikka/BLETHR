@@ -2,6 +2,11 @@
 #define _APP_CONFIG_H_
 
 #define SW_VERSION 0x12 // BCD format (0x34 -> '3.4')
+// Revision of this fork on top of SW_VERSION, reported as the trailing letter of the
+// Software Revision String ("V1.2+a"). Bump it on every release from here. It is kept
+// apart from SW_VERSION on purpose: SW_VERSION is also the stored configuration
+// version, and changing that risks erasing the user's settings, see app.c.
+#define FORK_REV 'a' // 'a'..'z'
 
 #define SCAN_DEBUG_ERR		1
 #define UART_PRINT_DEBUG_ENABLE 0

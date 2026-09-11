@@ -109,7 +109,10 @@ static const u8 my_ModelStr[] = {DEV_MODEL_STR};
 static const u8 my_SerialStr[] = {"12345678"};
 static const u8 my_FirmStr[] = {"BLETHR"}; 
 static const u8 my_HardStr[] = {'V','0'+(DEVICE_TYPE>>4),'.','0'+(DEVICE_TYPE&0x0f)};
-static const u8 my_SoftStr[] = {'V','0'+(SW_VERSION>>4),'.','0'+(SW_VERSION&0x0f)};
+// The trailing "+n" marks a build from this fork and which revision of it, so a device
+// one running the release it is based on. SW_VERSION itself is deliberately left
+// alone: it feeds the stored configuration version, see flash_supported_eep_ver().
+static const u8 my_SoftStr[] = {'V','0'+(SW_VERSION>>4),'.','0'+(SW_VERSION&0x0f),'+',FORK_REV};
 static const u8 my_ManStr[] = {"DIY"};
 //------------------
 #endif // USE_DEVICE_INFO_CHR_UUID

@@ -122,6 +122,12 @@ void user_init_normal(void) {
 	check_battery(MIN_VBAT_MV); // 2.2V
 	flash_unlock();
 	random_generator_init(); //must
+	// Returns false and erases the four configuration sectors at 0x7C000..0x7FFFF when
+	// the stored version is missing or below the first argument. Two rules follow, and
+	// breaking either of them costs the user the source MAC, the interval, the bind key
+	// and the clock correction: SW_VERSION must stay at 0x10 or above, so the version
+	// this build stores is not rejected by a later one, and the minimum must stay at
+	// 0x1010, so this firmware does not wipe a device coming from a stock 1.x release.
 	if(flash_supported_eep_ver(0x1010, 0x1000+SW_VERSION)) {
 		if(flash_read_cfg(&cfg, EEP_ID_DEV_CFG, sizeof(cfg)) != sizeof(cfg))
 			memcpy(&cfg, &def_cfg, sizeof(cfg));

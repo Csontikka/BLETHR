@@ -24,6 +24,15 @@
 #define BATT_SERVICE_ENABLE			1
 #define OTA_SERVICE_ENABLE			1
 
+// Left off deliberately, and reviewed. Nothing in this firmware has a reachable hang:
+// the I2C and UART waits all terminate on their own, the master runs without clock
+// stretching, and the flash driver feeds the watchdog itself. Nothing in the SDK sleep
+// path touches it either, and whether the counter stops while the part is suspended
+// cannot be settled from the headers, so turning this on risks a device that does
+// nothing but reboot, in a place nobody can reach. Parking and the backoff already
+// recover from the failure that actually happens, which is a source that goes quiet.
+// Revisit only on evidence of a real hang in the field, when there is something to
+// aim at, and then in a release of its own with a long soak test of the parked state.
 #define MODULE_WATCHDOG_ENABLE		0	// WDT not use
 #define WATCHDOG_INIT_TIMEOUT		250  // ms
 #define BLT_SOFTWARE_TIMER_ENABLE	1

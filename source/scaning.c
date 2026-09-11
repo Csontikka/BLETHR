@@ -271,6 +271,8 @@ void scan_task(void) {
 						}
 						scan.park_until = wrk.utc_time_sec + scan.park_secs;
 						wrk.scan_enable = 0;
+						// stop broadcasting the reading: it is no longer current
+						bls_ll_setAdvData((u8 *)&adv_buf, 3);
 						set_adv_time(SCAN_PARK_ADV);
 #if (DEV_SERVICES & SERVICE_SCREEN)
 						wrk.lcd_redraw = 1;

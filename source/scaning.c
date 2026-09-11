@@ -232,30 +232,32 @@ void scan_task(void) {
 			}
 		} else { // SCAN_STAGE_START
 			//------- сканирование в режиме поиска
-			tt = tt - scan.start_tik;
-			if(tt > 125*CLOCK_16M_SYS_TIMER_CLK_1MS) {
-				blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
+			if (scan.start_tik) {
+				tt = tt - scan.start_tik;
+				if(tt > 125*CLOCK_16M_SYS_TIMER_CLK_1MS) {
+					blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 #if (DEV_SERVICES & SERVICE_SCREEN)
-				SHOW_FLG_ERR();
+					SHOW_FLG_ERR();
 #endif
-				scan.err_count++;
-				scan.start_tik = 0;
-				if(scan.err_count == 0xff) {
-					wrk.scan_enable = 0;
+					scan.err_count++;
+					scan.start_tik = 0;
+					if(scan.err_count == 0xff) {
+						wrk.scan_enable = 0;
 #if (DEV_SERVICES & SERVICE_SCREEN)
-					show_scan_off();
+						show_scan_off();
 #endif
-				}
+					}
 #if (DEV_SERVICES & SERVICE_SCREEN)
-				else
-					show_err_screen(scan.err_count);
+					else
+						show_err_screen(scan.err_count);
 #endif
 #if SCAN_DEBUG
-				u_printf("st: %u, e:%u\n", tt >> 4, scan.err_count);
+					u_printf("st: %u, e:%u\n", tt >> 4, scan.err_count);
 #endif
 #if SCAN_DEBUG_ERR
-				scan.all_err++;
+					scan.all_err++;
 #endif
+				}
 			}
 		}
 	}

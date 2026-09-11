@@ -38,6 +38,14 @@ enum {
 } SCAN_STAGE_e;
 
 #define SCAN_SYN_ADV		(ADV_INTERVAL_1_28_S)
+#define SCAN_PARK_ADV		(ADV_INTERVAL_10_24S) // parked: beacon only, no scanning
+
+#define SCAN_SWEEP_MARGIN_MS	300   // added to the configured source period for the first sweep
+#define SCAN_SWEEP_FULL_MS		10500 // covers the whole configurable source range, 3000..10000 ms
+#define SCAN_SWEEPS				2     // sweeps of a search before the device parks
+
+#define SCAN_PARK_SECS_FIRST	120  // first park after a failed search, 2 minutes
+#define SCAN_PARK_SECS_MAX		3600 // longest park, 1 hour
 
 #define SCAN_INT_DEFAULT	5000 // 5000 ms, 5 sec
 
@@ -77,6 +85,8 @@ typedef struct {
 #if SCAN_DEBUG_ERR
 	u16 all_err;
 #endif
+	u32 park_until;		// utc_time_sec at which a parked device searches again, 0 = not parked
+	u16 park_secs;		// current backoff in seconds, 0 = the device has not parked yet
 	scan_cfg_t cfg;
 } scan_wrk_t;
 

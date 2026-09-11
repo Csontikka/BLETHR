@@ -26,6 +26,7 @@ void scan_init(void) {
 	scan.cfg.win_max = (u32)cfg.win_max;
 	wrk.scan_enable = cfg.scan_interval != 0;
 	scan.err_count = 0;
+	scan.park_until = 0;
 	scan.stage = SCAN_STAGE_START;
 	blta.adv_interval = SCAN_SYN_ADV*625*CLOCK_16M_SYS_TIMER_CLK_1US;
 }
@@ -67,6 +68,7 @@ int scanning_event_callback(u32 h, u8 *p, int n) {
 								scan.sum_cnt = 1;
 								scan.err_count = 0;
 								scan.stage = SCAN_STAGE_LP; // вкл сканирование в LP режиме
+								scan.park_secs = 0; // the source is back, start the backoff over
 								scan.window = scan.cfg.win_max; // SCAN_WINDOW_MAX;
 								scan.max_win = scan.cfg.win_max<<1; // SCAN_WINDOW_MAX*2;
 
@@ -182,6 +184,13 @@ int scanning_event_callback(u32 h, u8 *p, int n) {
 _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void scan_task(void) {
+	if(!wrk.ble_connected && !wrk.scan_enable && scan.park_until
+	&& wrk.utc_time_sec >= scan.park_until) {
+		//------- the backoff has run out, search for the source again
+		scan_init(); // clears park_until and returns to SCAN_STAGE_START
+		if(wrk.scan_enable)
+			start_adv_scanning();
+	}
 	if(!wrk.ble_connected && wrk.scan_enable) {
 		u32 tt = clock_time();
 		if(scan.stage > SCAN_STAGE_SYNC) {
@@ -235,8 +244,14 @@ void scan_task(void) {
 		} else { // SCAN_STAGE_START
 			//------- сканирование в режиме поиска
 			if (scan.start_tik) {
+				// one continuous sweep, long enough to contain a beacon of the source:
+				// the first uses the configured period, the second the whole legal range
+				u32 sweep = scan.err_count ?
+					(u32)SCAN_SWEEP_FULL_MS * CLOCK_16M_SYS_TIMER_CLK_1MS :
+					(scan.cfg.interval << SCAN_TIK_SHL)
+						+ SCAN_SWEEP_MARGIN_MS * CLOCK_16M_SYS_TIMER_CLK_1MS;
 				tt = tt - scan.start_tik;
-				if(tt > 125*CLOCK_16M_SYS_TIMER_CLK_1MS) {
+				if(tt > sweep) {
 					blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 #if (DEV_SERVICES & SERVICE_SCREEN)
 					wrk.lcd_redraw = 1;
@@ -244,8 +259,19 @@ void scan_task(void) {
 #endif
 					scan.err_count++;
 					scan.start_tik = 0;
-					if(scan.err_count == 0xff) {
+					if(scan.err_count >= SCAN_SWEEPS) {
+						// the source was not heard in a full sweep of its beacon period.
+						// park: keep beaconing, stop scanning, and search again later
+						if(scan.park_secs == 0)
+							scan.park_secs = SCAN_PARK_SECS_FIRST;
+						else if(scan.park_secs < SCAN_PARK_SECS_MAX) {
+							scan.park_secs <<= 2;
+							if(scan.park_secs > SCAN_PARK_SECS_MAX)
+								scan.park_secs = SCAN_PARK_SECS_MAX;
+						}
+						scan.park_until = wrk.utc_time_sec + scan.park_secs;
 						wrk.scan_enable = 0;
+						set_adv_time(SCAN_PARK_ADV);
 #if (DEV_SERVICES & SERVICE_SCREEN)
 						wrk.lcd_redraw = 1;
 						show_scan_off();

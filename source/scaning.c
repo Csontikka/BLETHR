@@ -47,7 +47,12 @@ static void scan_park(void) {
 	if(scan.park_secs == 0)
 		scan.park_secs = SCAN_PARK_SECS_FIRST;
 	else if(scan.park_secs < SCAN_PARK_SECS_MAX) {
-		scan.park_secs <<= 2;
+		// Doubling, not quadrupling. A failed search does not only mean the source has gone:
+		// on a marginal link it can mean two unlucky sweeps, and quadrupling reached the hour
+		// cap after four of those, which was measured happening with the source sitting right
+		// there. Six steps instead of four costs two more searches, about 42 s of radio, and
+		// buys a device that is merely unlucky a great deal of patience.
+		scan.park_secs <<= 1;
 		if(scan.park_secs > SCAN_PARK_SECS_MAX)
 			scan.park_secs = SCAN_PARK_SECS_MAX;
 	}

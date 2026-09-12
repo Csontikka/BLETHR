@@ -255,8 +255,9 @@ void scan_task(void) {
 						blta.adv_interval -= 3*CLOCK_16M_SYS_TIMER_CLK_1MS;
 						blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 						scan.err_count++; // счет ошибок приема
-				if(scan.sync_fail < 0xff)
-					scan.sync_fail++;
+						// Not counted as a sync failure: a missed window here is the ordinary loss that
+						// err_count and SCAN_ERR_CNT_MAX escalate on their own. sync_fail counts only a
+						// source that was heard and disagreed, which is done in the receive callback.
 						scan.start_tik = 0;
 #if SCAN_DEBUG
 						u_printf("ts: %u, e:%u\n", tt << SCAN_INT2US_SHR, scan.err_count);

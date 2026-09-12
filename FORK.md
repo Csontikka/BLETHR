@@ -39,19 +39,37 @@ It was also a lottery. A 125 ms window against a source that beacons every 5 s c
 probability 0.025, so 255 attempts leave a 1 in 600 chance of hearing nothing at all on a perfect
 link, and every 25th search of a 10 s source ended in the permanent stop with no fault present.
 
-One continuous window longer than the source's beacon period turns that into a certainty and
+A continuous window longer than the source's beacon period turns that into a certainty and
 costs less: 10.5 s spans every period the firmware can be configured for, and a reception ends
-the sweep the moment it arrives, so the length is only spent proving a source is absent.
+the sweep the moment it arrives, so the length is only spent proving a source is absent. Two such
+sweeps make a search, because at the slowest configurable source a single sweep holds exactly one
+beacon, and then one lost packet is a failed search. That was measured the hard way: with one
+sweep both bench devices parked within minutes of a 10 s source being set.
 
 Failure now parks the device rather than ending it. It keeps beaconing at the stack's longest
-advertising interval and searches again after 2 minutes, then 8, 32 and 60, holding there; a
-successful sync starts the ladder over. A source that has genuinely gone costs about 0.7 mAh a
-day in the steady state, roughly three hundred days on a CR2032, in exchange for recovering by
-itself whenever it comes back.
+advertising interval and searches again after 2 minutes, then 4, 8, 16, 32 and 60, holding there;
+a successful sync starts the ladder over, and so does the end of any connection, because someone
+who has just changed the source expects the device to go and look. Doubling rather than
+quadrupling is deliberate: a failed search does not only mean the source has gone, and on a
+marginal link four unlucky sweeps reached the hour cap with the source sitting right there.
+A source that has genuinely gone costs about 0.7 mAh a day in the steady state, roughly three
+hundred days on a CR2032, in exchange for recovering by itself whenever it comes back.
+
+A source that is heard but whose period never agrees is a separate case, and the worst one for
+power: every failure resets the error count, so upstream sweeps and syncs for as long as it has a
+battery. Three such failures in a row now park the device too. Only those count: an ordinary
+missed window in low power mode is what the error count and its own limit escalate, and counting
+it here parked a healthy device after its third missed beacon, which is worth writing down because
+this fork did exactly that for two revisions.
 
 Measured on hardware: receptions landed 3055, 5134 and 5169 ms into a 5300 ms sweep, spread
 rather than clustered at the start, which is what says the radio listens for the whole length
 rather than stopping early.
+
+Measured on hardware afterwards, with a 10 s source and the firmware's default receive windows:
+seventeen minutes, every advertisement heard carrying the source's reading, not one park, and the
+time from the start of a scan to the packet that ended it running 4 to 12 ms with a median of 8.
+The same setup parked every couple of minutes before the counting above was corrected.
 
 ## A parked device kept broadcasting a reading that was no longer true
 

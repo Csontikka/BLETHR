@@ -160,6 +160,12 @@ device that quietly repeats nothing.
 
 Both need `bleak` and an adapter the host's Bluetooth stack supports.
 
+## The binaries in this repository are upstream's
+
+`ATC_bthr_v12.bin`, `LKTMZL02_bthr_v12.bin` and `ZYZTH02P_bthr_v12.bin` are the images that came
+with v1.2 and none of the work here is in them. Flashing one of those gets a stock device, not
+this fork. Build from source, or take a binary from a release of this fork if there is one.
+
 ## Building
 
 As upstream: the Telink TC32 toolchain, and

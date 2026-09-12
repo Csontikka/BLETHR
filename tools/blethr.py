@@ -66,6 +66,7 @@ class Session:
     def __init__(self, client):
         self.client = client
         self.waiters: dict[int, asyncio.Future] = {}
+        self.response = True
 
     def _on_notify(self, _sender, data: bytearray) -> None:
         if not data:
@@ -75,6 +76,15 @@ class Session:
             fut.set_result(bytes(data))
 
     async def __aenter__(self):
+        # The characteristic is published as write-without-response, so asking for a response is
+        # not guaranteed to be accepted: Windows allows it, BlueZ can refuse it outright. Take the
+        # mode from what the device advertises rather than assuming one.
+        try:
+            char = self.client.services.get_characteristic(CHAR)
+            props = set(getattr(char, "properties", ()) or ())
+            self.response = "write" in props or not props
+        except Exception:  # noqa: BLE001
+            self.response = True
         await self.client.start_notify(CHAR, self._on_notify)
         # The subscription is not live the instant start_notify returns: without this pause the
         # first command of a session reliably loses its reply and times out, while every command
@@ -95,7 +105,7 @@ class Session:
             loop = asyncio.get_running_loop()
             fut: asyncio.Future = loop.create_future()
             self.waiters[opcode] = fut
-            await self.client.write_gatt_char(CHAR, bytes([opcode]) + payload, response=True)
+            await self.client.write_gatt_char(CHAR, bytes([opcode]) + payload, response=self.response)
             try:
                 return await asyncio.wait_for(fut, timeout)
             except asyncio.TimeoutError as err:

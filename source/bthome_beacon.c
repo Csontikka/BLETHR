@@ -99,7 +99,10 @@ _attribute_ram_code_
 __attribute__((optimize("-Os")))
 void bthome_parked_beacon(void) {
 	adv_parked_t * p = &adv_parked;
-	p->pid++;
+	// One counter across both packets. Two would repeat a value at the moment the device
+	// switches between them, and a consumer that drops a packet whose id it has already seen
+	// would throw away the first packet after every transition.
+	p->pid = ++adv_buf.pid;
 #if USE_AVERAGE_BATTERY
 	p->battery_mv = measured_data.average_battery_mv; // mV
 #else

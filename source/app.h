@@ -64,6 +64,7 @@ typedef struct {
 #endif
 #if	(BATT_SERVICE_ENABLE)
 	u32 tim_measure; // timer measurements >= 10 sec
+	u32 tim_lcd_full;	// mono_sec of the last forced full repaint of the panel
 	u8 send_measure;   // flag, measure complete
 #endif
 	u8 scan_enable;

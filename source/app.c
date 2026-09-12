@@ -245,6 +245,16 @@ _attribute_ram_code_ void main_loop(void) {
 			if (!wrk.scan_enable && scan.park_until)
 				bthome_parked_beacon(); // parked: keep our own reading current
 		}
+#if (DEV_SERVICES & SERVICE_SCREEN)
+		// Repaint the whole panel from time to time, because a transfer that fails is recorded as
+		// having succeeded and the picture can then sit wrong for as long as the device runs. The
+		// cost is one transfer every few minutes against a display that is redrawn on every
+		// reading anyway, and it turns an indefinite fault into one that lasts minutes.
+		if (wrk.mono_sec - wrk.tim_lcd_full >= LCD_FULL_REFRESH_SECS) {
+			wrk.tim_lcd_full = wrk.mono_sec;
+			lcd_force_refresh();
+		}
+#endif
 		scan_task();
 		if (scan.start_tik) { // 	if (blts.scan_en & 1) // (scan.start_tik)
 			// Pushed forward while one of the LONG scans is open, so elsewhere

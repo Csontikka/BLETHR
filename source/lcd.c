@@ -27,6 +27,30 @@ RAM u8 display_buff[LCD_BUF_SIZE], display_cmp_buff[LCD_BUF_SIZE];
 #endif
 
 #if (!USE_EPD)
+// Make the next update_lcd() send the whole picture again, whatever it thinks is already on
+// the panel.
+//
+// update_lcd() sends only when the drawing buffer differs from its copy of what was last sent,
+// and then records the buffer as sent whether or not it arrived. A single failed transfer
+// therefore leaves the panel showing an old picture while the firmware believes it is current,
+// and every later update that produces the same bytes is suppressed, so it can stay wrong
+// indefinitely. Seen on a bench device: the advertisement tracked the source exactly, in the
+// same second as three other repeaters, while its display sat two tenths of a degree behind.
+// Connecting to it fixed the picture, because the Bluetooth symbol changed and forced a send.
+//
+// On a freezer door this is the failure nobody notices: Home Assistant is right and the panel
+// is wrong, and nothing connects to the device for months.
+_attribute_ram_code_
+void lcd_force_refresh(void) {
+	// The byte to spoil is the first one update_lcd() actually compares, and that is not the same
+	// byte on every board: two of the three targets keep the comparison buffer offset by one.
+#if	(DEVICE_TYPE == DEVICE_ZTH03) || (DEVICE_TYPE == DEVICE_ZYZTH01)
+	display_cmp_buff[1] = ~display_buff[0];
+#else
+	display_cmp_buff[0] = ~display_buff[0];
+#endif
+}
+
 _attribute_ram_code_
 void update_lcd(void){
 //	if(cfg.flg.screen_off)

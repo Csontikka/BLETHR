@@ -67,6 +67,11 @@ enum {
 // for good rather than delay it.
 #define BATT_SETTLE_SECS		3
 
+// How often the whole panel is repainted whether or not the firmware thinks it needs it.
+// Three minutes: long enough to cost nothing, short enough that a stuck picture is noticed
+// as a glitch rather than lived with.
+#define LCD_FULL_REFRESH_SECS	180
+
 #define SCAN_INT_DEFAULT	5000 // 5000 ms, 5 sec
 
 #define SCAN_TIK_SHL		7

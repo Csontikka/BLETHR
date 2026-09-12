@@ -52,6 +52,7 @@ void lcd(void);
 void init_lcd(void);
 void send_to_lcd(void);
 void update_lcd(void);
+void lcd_force_refresh(void);
 /* 0x00 = "  "
  * 0x20 = "°Г"
  * 0x40 = " -"
@@ -318,6 +319,7 @@ void init_lcd(void);
 void lcd(void);
 void send_to_lcd(void);
 void update_lcd(void);
+void lcd_force_refresh(void);
 void show_battery_symbol(bool state);
 void show_ble_symbol(bool state);
 void show_low_bat(void);

@@ -173,7 +173,9 @@ async def flash(mac: str, path: str, attempts: int, timeout: float) -> int:
     await asyncio.sleep(8.0)
     for attempt in range(1, 6):
         try:
-            client = await connect(mac, attempts=1, timeout=timeout)
+            # A device that has just come back advertises on its own schedule, which can be ten
+            # seconds, so a short scan misses it and reports a failure for an update that worked.
+            client = await connect(mac, attempts=2, timeout=max(timeout, 45.0))
             after = await read_sw_revision(client)
             await client.disconnect()
             print("         now running " + str(after))

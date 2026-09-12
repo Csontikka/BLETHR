@@ -62,6 +62,9 @@ enum {
 // sweep is the sagged one. That reading decides a two minute deep sleep, and after a reset the
 // boot check runs before the radio starts, so a cold cell that is fine unloaded can put the
 // device into a sleep and reboot loop that never advertises again.
+// Only the long scans count towards this, not a low power window of ten to thirty ms: at the
+// fastest source those come every three seconds, and counting them would block the measurement
+// for good rather than delay it.
 #define BATT_SETTLE_SECS		3
 
 #define SCAN_INT_DEFAULT	5000 // 5000 ms, 5 sec
@@ -106,7 +109,7 @@ typedef struct {
 	u16 rx_tim;		// ms from the start of the scan to the last reception, 0xffff = unknown
 #endif
 	u32 park_until;		// mono_sec at which a parked device searches again, 0 = not parked
-	u32 radio_sec;		// mono_sec while a scan is running, so 'how long has the radio been off'
+	u32 radio_sec;		// mono_sec while a LONG scan runs (search or sync), for the battery timing
 	u8  sync_fail;		// syncs failed in a row; a source heard but never agreed with
 	u16 park_secs;		// current backoff in seconds, 0 = the device has not parked yet
 	scan_cfg_t cfg;

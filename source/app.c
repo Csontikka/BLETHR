@@ -247,9 +247,15 @@ _attribute_ram_code_ void main_loop(void) {
 		}
 		scan_task();
 		if (scan.start_tik) { // 	if (blts.scan_en & 1) // (scan.start_tik)
-			// Pushed forward for as long as a scan is open, so elsewhere 'mono_sec - radio_sec'
-			// is how long the radio has been off. The battery measurement needs that.
-			scan.radio_sec = wrk.mono_sec;
+			// Pushed forward while one of the LONG scans is open, so elsewhere
+			// 'mono_sec - radio_sec' is how long it has been since the radio was on for a
+			// stretch. Only the search and the wait for a sync qualify, both of which can run
+			// for ten seconds. A low power window is ten to thirty milliseconds and barely
+			// moves the cell, which matters: at the fastest source those windows come every
+			// three seconds, and counting them here would block the battery measurement for
+			// good instead of delaying it.
+			if (scan.stage <= SCAN_STAGE_SYNC)
+				scan.radio_sec = wrk.mono_sec;
 			bls_pm_setSuspendMask(SUSPEND_DISABLE);
 		}
 		else {

@@ -41,7 +41,12 @@ enum {
 #define SCAN_PARK_ADV		(ADV_INTERVAL_10_24S) // parked: beacon only, no scanning
 
 #define SCAN_SWEEP_FULL_MS		10500 // covers the whole configurable source range, 3000..10000 ms
-#define SCAN_SWEEPS				1     // sweeps of a search before the device parks
+// Two, because one sweep of 10.5 s holds only a single beacon of a 10 s source, so a single
+// lost packet parks a device whose source is right there. Measured: at a 10 s source both
+// bench devices parked within minutes and climbed the backoff, with error counts in single
+// figures, which is a search failing rather than a source missing. Both sweeps are the full
+// length, so the second is a real second chance rather than a subset of the first.
+#define SCAN_SWEEPS				2     // sweeps of a search before the device parks
 
 #define SCAN_PARK_SECS_FIRST	120  // first park after a failed search, 2 minutes
 #define SCAN_SYNC_FAIL_MAX		3    // failed syncs in a row before the device parks

@@ -6,7 +6,7 @@
 // Software Revision String ("V1.2+a"). Bump it on every release from here. It is kept
 // apart from SW_VERSION on purpose: SW_VERSION is also the stored configuration
 // version, and changing that risks erasing the user's settings, see app.c.
-#define FORK_REV 'j' // 'a'..'z'
+#define FORK_REV 'k' // 'a'..'z'
 
 #define SCAN_DEBUG_ERR		1
 // Temporary diagnostic: carry the time from the start of a scan to the reception in the

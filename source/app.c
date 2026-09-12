@@ -225,7 +225,15 @@ _attribute_ram_code_ void main_loop(void) {
 			wrk.send_measure = 0;
 		}
 #endif
-		if (!scan.start_tik // do not measure the battery while the radio is receiving
+		// Not while the radio is receiving, and not in the seconds after it stops either. A cell
+		// under receive current reads far below its open circuit voltage, and a sweep here can
+		// hold the radio on for 10.5 s, so the first pass after one sees the sagged reading. That
+		// reading decides a two minute deep sleep, and the boot check after the reset runs before
+		// the radio starts, so a cold cell that is fine unloaded can end up in a sleep and reboot
+		// loop that never advertises again. Waiting a few seconds costs nothing: the measurement
+		// is on a 30 s tick and the radio is off almost all of the time in low power mode.
+		if (!scan.start_tik
+		&& wrk.mono_sec - scan.radio_sec >= BATT_SETTLE_SECS
 		&& wrk.mono_sec - wrk.tim_measure >= measurement_step_time) {
 #if	(BATT_SERVICE_ENABLE)
 			wrk.send_measure = 1;
@@ -238,8 +246,12 @@ _attribute_ram_code_ void main_loop(void) {
 				bthome_parked_beacon(); // parked: keep our own reading current
 		}
 		scan_task();
-		if (scan.start_tik) // 	if (blts.scan_en & 1) // (scan.start_tik)
+		if (scan.start_tik) { // 	if (blts.scan_en & 1) // (scan.start_tik)
+			// Pushed forward for as long as a scan is open, so elsewhere 'mono_sec - radio_sec'
+			// is how long the radio has been off. The battery measurement needs that.
+			scan.radio_sec = wrk.mono_sec;
 			bls_pm_setSuspendMask(SUSPEND_DISABLE);
+		}
 		else {
 			send_task();
 			bls_pm_setSuspendMask(SUSPEND_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_ADV | DEEPSLEEP_RETENTION_CONN );

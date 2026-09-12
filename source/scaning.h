@@ -49,8 +49,20 @@ enum {
 #define SCAN_SWEEPS				2     // sweeps of a search before the device parks
 
 #define SCAN_PARK_SECS_FIRST	120  // first park after a failed search, 2 minutes
-#define SCAN_SYNC_FAIL_MAX		3    // failed syncs in a row before the device parks
+// Syncs failed in a row before the device parks. Both kinds of failure count: a source whose
+// period disagrees, which fails every time, and one whose next beacon never arrives, which on a
+// marginal link fails now and then. Five rather than three because of the second kind: at the
+// third of all windows this bench loses, five in a row is a quarter of a percent per attempt,
+// while a source that has really gone fails every attempt and still parks inside a minute.
+#define SCAN_SYNC_FAIL_MAX		5
 #define SCAN_PARK_SECS_MAX		3600 // longest park, 1 hour
+// Seconds the radio must have been off before the battery is measured. A cell under 7 mA of
+// receive current reads far below its open circuit voltage, and this firmware can hold the
+// radio on for 10.5 s at a stretch, so the reading taken in the first main loop pass after a
+// sweep is the sagged one. That reading decides a two minute deep sleep, and after a reset the
+// boot check runs before the radio starts, so a cold cell that is fine unloaded can put the
+// device into a sleep and reboot loop that never advertises again.
+#define BATT_SETTLE_SECS		3
 
 #define SCAN_INT_DEFAULT	5000 // 5000 ms, 5 sec
 
@@ -94,6 +106,7 @@ typedef struct {
 	u16 rx_tim;		// ms from the start of the scan to the last reception, 0xffff = unknown
 #endif
 	u32 park_until;		// mono_sec at which a parked device searches again, 0 = not parked
+	u32 radio_sec;		// mono_sec while a scan is running, so 'how long has the radio been off'
 	u8  sync_fail;		// syncs failed in a row; a source heard but never agreed with
 	u16 park_secs;		// current backoff in seconds, 0 = the device has not parked yet
 	scan_cfg_t cfg;

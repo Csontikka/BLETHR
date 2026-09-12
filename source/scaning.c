@@ -146,11 +146,19 @@ int scanning_event_callback(u32 h, u8 *p, int n) {
 								scan.stage = SCAN_STAGE_WRK;
 							}
 						}
-						// производить пробуждение за x мс до scan.interval, перевод в интервал маяка 0.625 ms
-						set_adv_time((scan.interval - scan.window - SCAN_WINDOW_DEC) / ((SCAN_INT_TIK*1000)/ADV_INTERVAL_1S));
-						scan.err_count = 0; // сброс счета ошибок приема
-						//scan.max_win = SCAN_WINDOW_MAX+SCAN_WINDOW_MIN;
-						scan.max_win = scan.cfg.win_max + scan.cfg.win_min;
+						// Tested again, because the sync mismatch branch above called scan_init(), which
+						// sets the stage back to START and picks the search advertising interval itself.
+						// Without this the wake is computed from interval and window that no longer apply,
+						// and on a device that has never reached low power both are zero, so the
+						// subtraction underflows and the 16 bit parameter ends up at 8.39 s instead of
+						// the 1.28 s the search wants. It searches, just six times slower.
+						if(scan.stage) {
+							// производить пробуждение за x мс до scan.interval, перевод в интервал маяка 0.625 ms
+							set_adv_time((scan.interval - scan.window - SCAN_WINDOW_DEC) / ((SCAN_INT_TIK*1000)/ADV_INTERVAL_1S));
+							scan.err_count = 0; // сброс счета ошибок приема
+							//scan.max_win = SCAN_WINDOW_MAX+SCAN_WINDOW_MIN;
+							scan.max_win = scan.cfg.win_max + scan.cfg.win_min;
+						}
 #if SCAN_DEBUG
 						u_printf("%u %u %u %u\n",
 								scan.interval << SCAN_INT2US_SHR,
@@ -283,7 +291,13 @@ void scan_task(void) {
 				wrk.lcd_redraw = 1;
 				SHOW_FLG_ERR();
 #endif
-				scan.err_count++;
+				// The source was heard in the search and then its next beacon never arrived. Counted
+				// as a sync failure, because without it this loops for as long as the battery lasts:
+				// scan_init below clears err_count on the next line, so nothing else escalates and
+				// the device sweeps, half-syncs and sweeps again at roughly a third of full duty,
+				// looking healthy from the outside the whole time.
+				if(scan.sync_fail < 0xff)
+					scan.sync_fail++;
 				scan.start_tik = 0;
 				scan_init();
 #if SCAN_DEBUG

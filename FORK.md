@@ -55,12 +55,20 @@ marginal link four unlucky sweeps reached the hour cap with the source sitting r
 A source that has genuinely gone costs about 0.7 mAh a day in the steady state, roughly three
 hundred days on a CR2032, in exchange for recovering by itself whenever it comes back.
 
-A source that is heard but whose period never agrees is a separate case, and the worst one for
-power: every failure resets the error count, so upstream sweeps and syncs for as long as it has a
-battery. Three such failures in a row now park the device too. Only those count: an ordinary
-missed window in low power mode is what the error count and its own limit escalate, and counting
-it here parked a healthy device after its third missed beacon, which is worth writing down because
-this fork did exactly that for two revisions.
+A source that is heard but not locked onto is a separate case, and the worst one for power.
+There are two ways it happens. Its period can disagree with the configured one, which fails every
+time, or its next beacon can simply not arrive, which on a marginal link fails now and then. Both
+went through a path that resets the error count, so upstream sweeps and half-syncs for as long as
+it has a battery, at roughly a third of full duty, looking healthy the whole time because every
+search reception refreshes the beacon and the display. Five such failures in a row now park the
+device. Five rather than three because of the second kind: at the third of all windows this bench
+loses, five in a row is a quarter of a percent per attempt, while a source that has really gone
+fails every attempt and still parks inside a minute.
+
+What does not count is an ordinary missed window in low power mode. That is what the error count
+and its own limit escalate, and counting it here parked a healthy device after its third missed
+beacon. Worth writing down, because this fork did exactly that for two revisions and it looked
+like a bad radio link rather than a counting mistake.
 
 Measured on hardware: receptions landed 3055, 5134 and 5169 ms into a 5300 ms sweep, spread
 rather than clustered at the start, which is what says the radio listens for the whole length
@@ -116,12 +124,23 @@ two fields.
 notified on a timer, and the variable behind it was never written.
 
 **The battery was measured under the radio's load.** battery.h states the calibration the
-thresholds assume: about 3100 mV unloaded, about 2950 mV during a measurement, the difference
+thresholds assume, about 3100 mV unloaded and about 2950 mV during a measurement, the difference
 being the ADC's own 0.4 mA. But `check_battery()` runs from the main loop on a timer, and the main
 loop keeps running while a scan window is open, so roughly a tenth of measurements read the cell
-under the radio instead. On a tired or cold cell that is enough to push the reading below the cut
-off, after which the part sleeps two minutes, reboots, measures the recovered open circuit
-voltage, starts, and does it again.
+under the radio instead.
+
+Skipping a measurement while a scan is open is not enough here, and this fork made that worse
+rather than better. A search sweep holds the radio on for 10.5 s at a stretch, and the first main
+loop pass after it closes takes the reading, on a cell that has just been delivering receive
+current. What that reading decides is a two minute deep sleep, and the check that runs after the
+reset it causes happens before the radio starts, so a cold cell which is perfectly healthy unloaded
+can end up in a sleep and reboot loop that never advertises again. It is the only path here by which
+a powered, undamaged device falls completely silent. The measurement therefore waits until the radio
+has been off for three seconds.
+
+Worth knowing alongside it: the voltage in the advertisement is a 32 sample running average that
+lags by eight to sixteen minutes, while the cut off compares the instantaneous reading. A healthy
+looking voltage in a beacon does not rule the threshold out.
 
 **A connection left open blinded the device.** Scanning stops for as long as a client is
 connected, and only the disconnect brings it back, so a client that never disconnects leaves the

@@ -70,7 +70,7 @@ typedef struct {
 	u8 ota_is_working;
 	u8 ble_connected;	// BIT(CONNECTED_FLG_BITS_e)
 	u8 lcd_redraw;		// flag: an error screen overwrote the display, repaint it on the next update
-	u32 conn_sec;		// utc_time_sec when the current connection was established
+	u32 conn_sec;		// mono_sec when the current connection was established
 } wrk_data_t;
 
 extern wrk_data_t wrk;

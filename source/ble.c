@@ -89,6 +89,11 @@ void ble_disconnect_callback(u8 e, u8 *p, int n) {
 	wrk.ota_is_working = 0;
 	bls_ll_setAdvData((u8 *)&adv_buf, 3);
 	ev_adv_timeout(0,0,0);
+	// Someone has just been here, so start the backoff over. The ladder exists to stop a
+	// device hammering a source that has been gone for hours, not to make a device that
+	// was only reconfigured wait an hour before it looks for the source it was just given.
+	scan.park_secs = 0;
+	scan.sync_fail = 0;
 	scan_init();
 }
 

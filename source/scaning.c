@@ -39,6 +39,31 @@ static void set_adv_time(u32 tt) {
 	rf_set_power_level_index(cfg.rf_tx_power);
 	bls_ll_setAdvEnable(1);
 }
+// Park: stop scanning, keep this device's own state on the air, and come back to the search
+// after a backoff that doubles up to an hour. Called from the main loop only, never from the
+// radio callback, because it rewrites both the advertisement and the advertising parameters.
+_attribute_ram_code_
+static void scan_park(void) {
+	if(scan.park_secs == 0)
+		scan.park_secs = SCAN_PARK_SECS_FIRST;
+	else if(scan.park_secs < SCAN_PARK_SECS_MAX) {
+		scan.park_secs <<= 2;
+		if(scan.park_secs > SCAN_PARK_SECS_MAX)
+			scan.park_secs = SCAN_PARK_SECS_MAX;
+	}
+	scan.park_until = wrk.mono_sec + scan.park_secs;
+	scan.sync_fail = 0;
+	wrk.scan_enable = 0;
+	// stop broadcasting the source fields: they are no longer current.
+	// this device keeps reporting its own state
+	bthome_parked_beacon();
+	set_adv_time(SCAN_PARK_ADV);
+#if (DEV_SERVICES & SERVICE_SCREEN)
+	wrk.lcd_redraw = 1;
+	show_scan_off();
+#endif
+}
+
 //////////////////////////////////////////////////////////
 // scan event call back
 //////////////////////////////////////////////////////////
@@ -74,10 +99,15 @@ int scanning_event_callback(u32 h, u8 *p, int n) {
 								scan.err_count = 0;
 								scan.stage = SCAN_STAGE_LP; // вкл сканирование в LP режиме
 								scan.park_secs = 0; // the source is back, start the backoff over
+								scan.sync_fail = 0;
 								scan.window = scan.cfg.win_max; // SCAN_WINDOW_MAX;
 								scan.max_win = scan.cfg.win_max<<1; // SCAN_WINDOW_MAX*2;
 
 							} else {
+								// Heard, but its period disagrees with the configured one. Counted here
+								// and acted on in the main loop: this runs in the radio callback.
+								if(scan.sync_fail < 0xff)
+									scan.sync_fail++;
 								scan_init();
 #if SCAN_DEBUG
 								u_printf("se: %u <> %u %u\n",
@@ -197,6 +227,15 @@ void scan_task(void) {
 			start_adv_scanning();
 	}
 	if(!wrk.ble_connected && wrk.scan_enable) {
+		// A source that is heard but whose period never agrees is the worst case for power:
+		// without this the device sweeps, syncs, fails and sweeps again for as long as it has a
+		// battery, because every failure resets the error count. Park instead, and back off.
+		if(scan.sync_fail >= SCAN_SYNC_FAIL_MAX) {
+			blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE);
+			scan.start_tik = 0;
+			scan_park();
+			return;
+		}
 		u32 tt = clock_time();
 		if(scan.stage > SCAN_STAGE_SYNC) {
 			//----------- сканирование в LP режиме
@@ -211,6 +250,8 @@ void scan_task(void) {
 						blta.adv_interval -= 3*CLOCK_16M_SYS_TIMER_CLK_1MS;
 						blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 						scan.err_count++; // счет ошибок приема
+				if(scan.sync_fail < 0xff)
+					scan.sync_fail++;
 						scan.start_tik = 0;
 #if SCAN_DEBUG
 						u_printf("ts: %u, e:%u\n", tt << SCAN_INT2US_SHR, scan.err_count);
@@ -262,27 +303,9 @@ void scan_task(void) {
 #endif
 					scan.err_count++;
 					scan.start_tik = 0;
-					if(scan.err_count >= SCAN_SWEEPS) {
-						// the source was not heard in a full sweep of its beacon period.
-						// park: keep beaconing, stop scanning, and search again later
-						if(scan.park_secs == 0)
-							scan.park_secs = SCAN_PARK_SECS_FIRST;
-						else if(scan.park_secs < SCAN_PARK_SECS_MAX) {
-							scan.park_secs <<= 2;
-							if(scan.park_secs > SCAN_PARK_SECS_MAX)
-								scan.park_secs = SCAN_PARK_SECS_MAX;
-						}
-						scan.park_until = wrk.mono_sec + scan.park_secs;
-						wrk.scan_enable = 0;
-						// stop broadcasting the source fields: they are no longer current.
-						// this device keeps reporting its own state
-						bthome_parked_beacon();
-						set_adv_time(SCAN_PARK_ADV);
-#if (DEV_SERVICES & SERVICE_SCREEN)
-						wrk.lcd_redraw = 1;
-						show_scan_off();
-#endif
-					}
+					if(scan.err_count >= SCAN_SWEEPS)
+						// the source was not heard in a full sweep of its beacon period
+						scan_park();
 #if (DEV_SERVICES & SERVICE_SCREEN)
 					else {
 						wrk.lcd_redraw = 1;

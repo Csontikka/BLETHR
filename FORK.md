@@ -61,9 +61,15 @@ as the device has power. A consumer sees a device that is present and answering 
 reading, and has no way to tell that the reading stopped being current hours ago.
 
 A parked device now advertises its own fields only: packet id, voltage and the error count. The
-source's temperature and humidity are absent, and their absence is the signal. A display that has
-stopped receiving can therefore be told from one whose own cell is going flat, because the second
-keeps reporting while the first goes quiet.
+source's temperature and humidity are absent, and their absence is the signal.
+
+Be careful about what that buys on the consumer side. Home Assistant keeps a device's entities
+available for as long as the device is advertising anything at all, and does not expire them per
+field, so the relayed temperature does not vanish: it freezes at the last value received while the
+voltage and the error count carry on moving. Telling the two apart is therefore something the
+consumer has to do, by noticing that one field has stopped while others have not, and the
+integration here does exactly that. What the firmware guarantees is only that it stops asserting a
+reading it no longer has.
 
 The battery percentage still describes the source, as upstream documents, and this device's own
 cell is still the voltage. That is not a compromise but the only layout that works: a consumer

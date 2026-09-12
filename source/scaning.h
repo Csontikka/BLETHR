@@ -40,9 +40,8 @@ enum {
 #define SCAN_SYN_ADV		(ADV_INTERVAL_1_28_S)
 #define SCAN_PARK_ADV		(ADV_INTERVAL_10_24S) // parked: beacon only, no scanning
 
-#define SCAN_SWEEP_MARGIN_MS	300   // added to the configured source period for the first sweep
 #define SCAN_SWEEP_FULL_MS		10500 // covers the whole configurable source range, 3000..10000 ms
-#define SCAN_SWEEPS				2     // sweeps of a search before the device parks
+#define SCAN_SWEEPS				1     // sweeps of a search before the device parks
 
 #define SCAN_PARK_SECS_FIRST	120  // first park after a failed search, 2 minutes
 #define SCAN_PARK_SECS_MAX		3600 // longest park, 1 hour

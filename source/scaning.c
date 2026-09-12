@@ -249,14 +249,12 @@ void scan_task(void) {
 		} else { // SCAN_STAGE_START
 			//------- сканирование в режиме поиска
 			if (scan.start_tik) {
-				// one continuous sweep, long enough to contain a beacon of the source:
-				// the first uses the configured period, the second the whole legal range
-				u32 sweep = scan.err_count ?
-					(u32)SCAN_SWEEP_FULL_MS * CLOCK_16M_SYS_TIMER_CLK_1MS :
-					(scan.cfg.interval << SCAN_TIK_SHL)
-						+ SCAN_SWEEP_MARGIN_MS * CLOCK_16M_SYS_TIMER_CLK_1MS;
+				// One continuous sweep, longer than any source this firmware can be configured
+				// for, so it contains at least one beacon of a source that is there at all. A
+				// reception ends the sweep the moment it arrives, so the length costs nothing
+				// when the source is present and is only spent proving that it is not.
 				tt = tt - scan.start_tik;
-				if(tt > sweep) {
+				if(tt > (u32)SCAN_SWEEP_FULL_MS * CLOCK_16M_SYS_TIMER_CLK_1MS) {
 					blc_ll_setScanEnable(BLC_SCAN_DISABLE, DUP_FILTER_DISABLE); // отсановить сканирование
 #if (DEV_SERVICES & SERVICE_SCREEN)
 					wrk.lcd_redraw = 1;
